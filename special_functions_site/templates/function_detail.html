@@ -1,0 +1,150 @@
+{% extends "base.html" %}
+
+{% block title %}{{ func.name }}{% endblock %}
+
+{% block content %}
+<div class="row g-4">
+    <div class="col-lg-9">
+        <div class="page-header-box mb-4">
+            <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                <div>
+                    <h1 class="mb-2">{{ func.name }}</h1>
+                    <p class="mb-0 text-muted">Карточка специальной функции</p>
+                </div>
+
+                {% if current_user.is_authenticated %}
+                <div class="d-flex gap-2 flex-wrap">
+                    <a href="{{ url_for('edit_function', id=func.id) }}" class="btn btn-warning">Редактировать</a>
+
+                    <form method="post" action="{{ url_for('delete_function', id=func.id) }}"
+                          onsubmit="return confirm('Удалить функцию целиком?');">
+                        <button type="submit" class="btn btn-danger">Удалить</button>
+                    </form>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card fancy-card mb-4">
+            <div class="card-body">
+                <h3>Описание</h3>
+                <div class="content-text">{{ func.description | internal_links }}</div>
+            </div>
+        </div>
+
+        <div class="card fancy-card mb-4">
+            <div class="card-body">
+                <h3>Формула</h3>
+                {% if func.formula %}
+                    <div class="formula-box">
+                        $$ {{ func.formula }} $$
+                    </div>
+                {% else %}
+                    <p class="text-muted">Формула пока не добавлена.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card fancy-card mb-4">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mb-3">
+                    <h3 class="mb-0">Литература</h3>
+                </div>
+
+                <ul class="list-group mb-4">
+                    {% for l in literature %}
+                    <li class="list-group-item">
+                        <div class="d-flex justify-content-between align-items-start flex-wrap gap-2">
+                            <div>
+                                <strong>{{ l.author }}</strong> — {{ l.title }}
+                            </div>
+
+                            {% if current_user.is_authenticated %}
+                            <div class="d-flex gap-2">
+                                <a href="{{ url_for('edit_literature', id=l.id) }}" class="btn btn-sm btn-outline-warning">Редактировать</a>
+
+                                <form method="post" action="{{ url_for('delete_literature', id=l.id) }}"
+                                      onsubmit="return confirm('Удалить запись литературы?');">
+                                    <button type="submit" class="btn btn-sm btn-outline-danger">Удалить</button>
+                                </form>
+                            </div>
+                            {% endif %}
+                        </div>
+                    </li>
+                    {% else %}
+                    <li class="list-group-item text-muted">Литература пока не добавлена.</li>
+                    {% endfor %}
+                </ul>
+
+                {% if current_user.is_authenticated %}
+                <h5>Добавить литературу</h5>
+                <form method="post" action="{{ url_for('add_literature', id=func.id) }}">
+                    <input class="form-control mb-2" name="author" placeholder="Автор" required>
+                    <input class="form-control mb-2" name="title" placeholder="Название" required>
+                    <button class="btn btn-main" type="submit">Добавить</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="card fancy-card">
+            <div class="card-body">
+                <h3 class="mb-3">Wolfram-код</h3>
+
+                {% for c in codes %}
+                <div class="code-box mb-3">
+                    <pre>{{ c.code }}</pre>
+
+                    {% if current_user.is_authenticated %}
+                    <div class="d-flex gap-2 mt-2">
+                        <a href="{{ url_for('edit_code', id=c.id) }}" class="btn btn-sm btn-outline-warning">Редактировать</a>
+
+                        <form method="post" action="{{ url_for('delete_code', id=c.id) }}"
+                              onsubmit="return confirm('Удалить этот блок кода?');">
+                            <button type="submit" class="btn btn-sm btn-outline-danger">Удалить</button>
+                        </form>
+                    </div>
+                    {% endif %}
+                </div>
+                {% else %}
+                <p class="text-muted">Wolfram-код пока не добавлен.</p>
+                {% endfor %}
+
+                {% if current_user.is_authenticated %}
+                <h5>Добавить Wolfram-код</h5>
+                <form method="post" action="{{ url_for('add_code', id=func.id) }}">
+                    <textarea class="form-control mb-2" name="code" rows="8" placeholder="Вставьте код Wolfram" required></textarea>
+                    <button class="btn btn-main" type="submit">Добавить код</button>
+                </form>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-3">
+        <div class="card fancy-card sticky-sidebar">
+            <div class="card-body">
+                <h5>Навигация по функциям</h5>
+                <ul class="sidebar-list">
+                    {% for item in all_functions %}
+                    <li>
+                        <a href="{{ url_for('function_detail', id=item.id) }}"
+                           {% if item.id == func.id %}class="active-link"{% endif %}>
+                            {{ item.name }}
+                        </a>
+                    </li>
+                    {% endfor %}
+                </ul>
+
+                <hr>
+
+                <p class="small text-muted mb-1">Внутренние ссылки в описании:</p>
+                <div class="small">
+                    Пиши так:<br>
+                    <code>[[Преобразования Эйлера-Пфаффа]]</code>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

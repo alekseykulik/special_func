@@ -1,0 +1,42 @@
+{% extends "base.html" %}
+
+{% block title %}{{ subsection.title }}{% endblock %}
+
+{% block content %}
+<div class="page-header-box mb-4">
+    <div class="mb-2">
+        <a href="/" class="text-decoration-none">Главная</a>
+        /
+        <a href="{{ url_for('section_detail', section_id=section.id) }}" class="text-decoration-none">{{ section.title }}</a>
+        /
+        <span>{{ subsection.title }}</span>
+    </div>
+
+    <h1>{{ subsection.title }}</h1>
+    <p class="text-muted mb-0">{{ subsection.description }}</p>
+</div>
+
+<div class="row g-4">
+    {% for material in materials %}
+    <div class="col-md-6 col-lg-4">
+        <div class="card fancy-card h-100">
+            <div class="card-body d-flex flex-column">
+                <h5>{{ material.title }}</h5>
+
+                <p class="text-muted flex-grow-1">
+                    {{ (material.description or '')[:180] }}{% if material.description and material.description|length > 180 %}...{% endif %}
+                </p>
+
+                <a href="{{ url_for('material_detail', material_id=material.id) }}" class="btn btn-main">
+                    Открыть материал
+                </a>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="col-12">
+        <div class="alert alert-info">В этом подразделе пока нет материалов.</div>
+    </div>
+    {% endfor %}
+</div>
+{% endblock %}

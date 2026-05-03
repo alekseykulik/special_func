@@ -1,0 +1,20 @@
+{% extends "base.html" %}
+
+{% block title %}Редактировать код{% endblock %}
+
+{% block content %}
+<div class="card fancy-card mx-auto" style="max-width: 900px;">
+    <div class="card-body">
+        <h1 class="mb-4">Редактировать Wolfram-код</h1>
+
+        <form method="post">
+            <textarea class="form-control mb-3" name="code" rows="12" required>{{ code.code }}</textarea>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-main">Сохранить</button>
+                <a href="{{ url_for('function_detail', id=code.function_id) }}" class="btn btn-secondary">Отмена</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

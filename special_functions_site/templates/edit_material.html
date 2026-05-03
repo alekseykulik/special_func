@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block title %}Редактировать материал{% endblock %}
+
+{% block content %}
+<div class="card fancy-card mx-auto" style="max-width: 900px;">
+    <div class="card-body">
+        <h1 class="mb-4">Редактировать материал</h1>
+
+        <form method="post">
+            <input class="form-control mb-3" name="title" value="{{ material.title }}" required>
+
+            <textarea class="form-control mb-3" name="description" rows="7">{{ material.description }}</textarea>
+
+            <textarea class="form-control mb-3" name="formula" rows="4">{{ material.formula }}</textarea>
+
+            <textarea class="form-control mb-3" name="wolfram_code" rows="6">{{ material.wolfram_code }}</textarea>
+
+            <textarea class="form-control mb-3" name="literature" rows="6">{{ material.literature }}</textarea>
+
+            <select class="form-control mb-3" name="subsection_id" required>
+                {% for subsection in subsections %}
+                <option value="{{ subsection.id }}" {% if subsection.id == material.subsection_id %}selected{% endif %}>
+                    {{ subsection.title }}
+                </option>
+                {% endfor %}
+            </select>
+
+            <div class="d-flex gap-2">
+                <button class="btn btn-main" type="submit">Сохранить</button>
+                <a class="btn btn-secondary" href="{{ url_for('material_detail', material_id=material.id) }}">Отмена</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

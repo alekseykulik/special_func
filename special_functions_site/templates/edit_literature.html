@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+
+{% block title %}Редактировать литературу{% endblock %}
+
+{% block content %}
+<div class="card fancy-card mx-auto" style="max-width: 700px;">
+    <div class="card-body">
+        <h1 class="mb-4">Редактировать литературу</h1>
+
+        <form method="post">
+            <input class="form-control mb-3" name="author" value="{{ lit.author }}" required>
+            <input class="form-control mb-3" name="title" value="{{ lit.title }}" required>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-main">Сохранить</button>
+                <a href="{{ url_for('function_detail', id=lit.function_id) }}" class="btn btn-secondary">Отмена</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
