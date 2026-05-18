@@ -1,12 +1,18 @@
+import os
 from flask import Flask, render_template, request, redirect, url_for
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from markupsafe import Markup
 import re
+from werkzeug.security import generate_password_hash, check_password_hash
 
+from dotenv import load_dotenv
+
+# Загружаем переменные из файла .env
+load_dotenv()
 app = Flask(__name__)
 
-app.config['SECRET_KEY'] = 'secret123'
+app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY', 'default-insecure-key')
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
@@ -141,7 +147,8 @@ def login():
 
         user = User.query.filter_by(username=username).first()
 
-        if user and user.password == password:
+        # Меняем проверку пароля на безопасную:
+        if user and check_password_hash(user.password, password):
             login_user(user)
             return redirect(url_for('admin'))
 
@@ -323,22 +330,28 @@ def delete_material(material_id):
     return redirect(url_for('admin'))
 
 
-# =========================
-# ЗАПУСК
-# =========================
-with app.app_context():
-    db.create_all()
 
-    if not User.query.filter_by(username='admin').first():
-        admin = User(username='admin', password='1234')
-        db.session.add(admin)
-        db.session.commit()
+
 if __name__ == '__main__':
     with app.app_context():
         db.create_all()
 
-        
+        admin_user = os.environ.get('ADMIN_USERNAME')
+        admin_pass = os.environ.get('ADMIN_PASSWORD')
 
-    import os
-    port = int(os.environ.get("PORT", 5000))
-    app.run(host="0.0.0.0", port=port, debug=False)
+        # Выводим в консоль, чтобы увидеть, загрузились ли данные
+        print(f"--- [DEBUG] Логин из .env: {admin_user} ---")
+
+        if admin_user and admin_pass:
+            if not User.query.filter_by(username=admin_user).first():
+                hashed_password = generate_password_hash(admin_pass)
+                admin = User(username=admin_user, password=hashed_password)
+                db.session.add(admin)
+                db.session.commit()
+                print("--- [DEBUG] Админ успешно создан в базе! ---")
+            else:
+                print("--- [DEBUG] Админ уже существует в базе. ---")
+        else:
+            print("--- [DEBUG] ВНИМАНИЕ: Данные из .env НЕ ЗАГРУЗИЛИСЬ! ---")
+
+    app.run(debug=True)
