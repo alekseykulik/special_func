@@ -332,26 +332,29 @@ def delete_material(material_id):
 
 
 
+# =========================
+# ИНИЦИАЛИЗАЦИЯ БАЗЫ ДАННЫХ
+# =========================
+
+# Этот блок теперь сработает и на твоем ПК, и на сервере Render
+with app.app_context():
+    db.create_all()
+
+    admin_user = os.environ.get('ADMIN_USERNAME')
+    admin_pass = os.environ.get('ADMIN_PASSWORD')
+
+    if admin_user and admin_pass:
+        if not User.query.filter_by(username=admin_user).first():
+            hashed_password = generate_password_hash(admin_pass)
+            admin = User(username=admin_user, password=hashed_password)
+            db.session.add(admin)
+            db.session.commit()
+            print("--- [DEBUG] Админ успешно создан в базе! ---")
+
+# =========================
+# ЗАПУСК ЛОКАЛЬНОГО СЕРВЕРА
+# =========================
+
 if __name__ == '__main__':
-    with app.app_context():
-        db.create_all()
-
-        admin_user = os.environ.get('ADMIN_USERNAME')
-        admin_pass = os.environ.get('ADMIN_PASSWORD')
-
-        # Выводим в консоль, чтобы увидеть, загрузились ли данные
-        print(f"--- [DEBUG] Логин из .env: {admin_user} ---")
-
-        if admin_user and admin_pass:
-            if not User.query.filter_by(username=admin_user).first():
-                hashed_password = generate_password_hash(admin_pass)
-                admin = User(username=admin_user, password=hashed_password)
-                db.session.add(admin)
-                db.session.commit()
-                print("--- [DEBUG] Админ успешно создан в базе! ---")
-            else:
-                print("--- [DEBUG] Админ уже существует в базе. ---")
-        else:
-            print("--- [DEBUG] ВНИМАНИЕ: Данные из .env НЕ ЗАГРУЗИЛИСЬ! ---")
-
+    # Здесь оставляем ТОЛЬКО запуск локального сервера
     app.run(debug=True)
