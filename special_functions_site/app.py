@@ -13,8 +13,13 @@ load_dotenv()
 app = Flask(__name__)
 
 app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY', 'default-insecure-key')
-# Забираем ссылку на Supabase из Render. 
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL', 'sqlite:///site.db')
+db_url = os.environ.get('DATABASE_URL')
+
+# Если ссылки нет - убиваем процесс и выдаем громкую ошибку
+if not db_url:
+    raise ValueError("СТОП! Рендер не видит ссылку на базу данных DATABASE_URL! Проверь вкладку Environment.")
+
+app.config['SQLALCHEMY_DATABASE_URI'] = db_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
