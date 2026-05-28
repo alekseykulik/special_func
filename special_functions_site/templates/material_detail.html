@@ -35,7 +35,7 @@
 <div class="card fancy-card mb-4">
     <div class="card-body">
         <h3>Описание</h3>
-        <div class="content-text">
+        <div class="content-text overflow-x-auto">
             {{ material.description | safe | internal_links }}
         </div>
     </div>
@@ -45,7 +45,7 @@
     <div class="card-body">
         <h3>Формула</h3>
         {% if material.formula %}
-            <div class="formula-box">
+            <div class="formula-box overflow-x-auto">
                 $$ {{ material.formula | safe }} $$
             </div>
         {% else %}
@@ -58,7 +58,7 @@
     <div class="card-body">
         <h3>Wolfram-код</h3>
         {% if material.wolfram_code %}
-            <div class="code-box">
+            <div class="code-box overflow-x-auto">
                 <pre>{{ material.wolfram_code }}</pre>
             </div>
         {% else %}
