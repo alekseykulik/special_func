@@ -20,14 +20,14 @@
     {% for material in materials %}
     <div class="col-md-6 col-lg-4">
         <div class="card fancy-card h-100">
-            <div class="card-body d-flex flex-column">
+            <div class="card-body d-flex flex-column" style="min-width: 0;">
                 <h5>{{ material.title }}</h5>
 
-                <p class="text-muted flex-grow-1">
+                <div class="text-muted flex-grow-1 overflow-x-auto w-100 pb-2 mb-3" style="max-width: 100%;">
                     {{ material.description | safe }}
-                </p>
+                </div>
 
-                <a href="{{ url_for('material_detail', material_id=material.id) }}" class="btn btn-main">
+                <a href="{{ url_for('material_detail', material_id=material.id) }}" class="btn btn-main mt-auto">
                     Открыть материал
                 </a>
             </div>
