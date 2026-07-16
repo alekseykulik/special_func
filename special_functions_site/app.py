@@ -8,14 +8,12 @@ from werkzeug.security import generate_password_hash, check_password_hash
 
 from dotenv import load_dotenv
 
-# Загружаем переменные из файла .env
 load_dotenv()
 app = Flask(__name__)
 
 app.config['SECRET_KEY'] = os.environ.get('FLASK_SECRET_KEY', 'default-insecure-key')
 db_url = os.environ.get('DATABASE_URL')
 
-# Если ссылки нет - убиваем процесс и выдаем громкую ошибку
 if not db_url:
     raise ValueError("СТОП! Рендер не видит ссылку на базу данных DATABASE_URL! Проверь вкладку Environment.")
 
@@ -342,7 +340,6 @@ def delete_material(material_id):
 # ИНИЦИАЛИЗАЦИЯ БАЗЫ ДАННЫХ
 # =========================
 
-# Этот блок теперь сработает и на твоем ПК, и на сервере Render
 with app.app_context():
     db.create_all()
 
@@ -362,5 +359,4 @@ with app.app_context():
 # =========================
 
 if __name__ == '__main__':
-    # Здесь оставляем ТОЛЬКО запуск локального сервера
     app.run(debug=True)
