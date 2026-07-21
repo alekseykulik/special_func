@@ -71,7 +71,7 @@
     <div class="card-body">
         <h3>Литература</h3>
         {% if material.literature %}
-            <div style="white-space: pre-wrap;">{{ material.literature }}</div>
+            <div>{{ material.literature | internal_links }}</div>
         {% else %}
             <p class="text-muted">Литература не добавлена.</p>
         {% endif %}
