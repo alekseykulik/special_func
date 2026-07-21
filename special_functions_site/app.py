@@ -70,17 +70,18 @@ def load_user(user_id):
 
 
 # =========================
-# ВНУТРЕННИЕ ССЫЛКИ
-# Формат: [[Название материала]]
+# ОБРАБОТКА ССЫЛОК И ТЕКСТА
+# Внутренние: [[Название материала]]
+# Внешние: [Текст ссылки](https://ссылка.ру)
 # =========================
 
-def convert_internal_links(text):
+def process_text_links(text):
     if not text:
         return ""
 
-    pattern = r"\[\[(.*?)\]\]"
-
-    def replace_link(match):
+    # 1. Обрабатываем внутренние ссылки [[Название]]
+    pattern_internal = r"\[\[(.*?)\]\]"
+    def replace_internal(match):
         material_title = match.group(1).strip()
         material = Material.query.filter_by(title=material_title).first()
         if material:
@@ -88,12 +89,26 @@ def convert_internal_links(text):
             return f'<a href="{link}">{material_title}</a>'
         return material_title
 
-    return Markup(re.sub(pattern, replace_link, text))
+    text = re.sub(pattern_internal, replace_internal, text)
+
+    # 2. Обрабатываем внешние ссылки [Текст](URL)
+    pattern_external = r"\[([^\]]+)\]\(([^)]+)\)"
+    def replace_external(match):
+        link_text = match.group(1).strip()
+        url = match.group(2).strip()
+        return f'<a href="{url}" target="_blank" rel="noopener noreferrer">{link_text}</a>'
+
+    text = re.sub(pattern_external, replace_external, text)
+
+    # 3. Сохраняем переносы строк
+    text = text.replace('\n', '<br>')
+
+    return Markup(text)
 
 
 @app.template_filter('internal_links')
 def internal_links_filter(text):
-    return convert_internal_links(text)
+    return process_text_links(text)
 
 
 # =========================
@@ -151,7 +166,6 @@ def login():
 
         user = User.query.filter_by(username=username).first()
 
-        # Меняем проверку пароля на безопасную:
         if user and check_password_hash(user.password, password):
             login_user(user)
             return redirect(url_for('admin'))
@@ -332,8 +346,6 @@ def delete_material(material_id):
     db.session.delete(material)
     db.session.commit()
     return redirect(url_for('admin'))
-
-
 
 
 # =========================
