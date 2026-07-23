@@ -308,3 +308,13 @@ h1, h2, h3, h4, h5, h6 {
 .footer a:hover {
     color: #2563eb !important;
     transform: translateY(-2px); 
+
+.footer {
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-top: 1px solid rgba(226, 232, 240, 0.8);
+    box-shadow: 0 -4px 6px -1px rgba(0, 0, 0, 0.05); 
+    position: relative;
+    z-index: 10;
+}
