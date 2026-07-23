@@ -1,1 +1,47 @@
+{% extends "base.html" %}
 
+{% block title %}О проекте - Специальные функции{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-lg-8">
+        <div class="card shadow-sm border-0">
+            <div class="card-body p-4 p-md-5">
+                
+                <h1 class="mb-4 d-flex align-items-center gap-3">
+                    <i class="bi bi-info-circle text-primary"></i> 
+                    О проекте
+                </h1>
+                
+                <p class="lead text-muted mb-4">
+                    Добро пожаловать в базу знаний специальных математических функций.
+                </p>
+                
+                <hr class="mb-4">
+                
+                <h3 class="h5 fw-bold mb-3">
+                    <i class="bi bi-bullseye text-success me-2"></i> Наша цель
+                </h3>
+                <p class="mb-4">
+                    Этот проект создан для систематизации, хранения и удобного поиска информации по специальным математическим функциям. Мы собираем формулы, код для Wolfram Mathematica и литературные источники в единую и удобную базу данных.
+                </p>
+
+                <h3 class="h5 fw-bold mb-3">
+                    <i class="bi bi-braces-asterisk text-warning me-2"></i> Как это работает
+                </h3>
+                <p class="mb-4">
+                    Вы можете свободно перемещаться по разделам и подразделам сайта. Формулы отображаются с помощью <strong>MathJax</strong> прямо в браузере. Например, вы можете увидеть сложные интегралы или ряды в привычном математическом виде: 
+                    $$\int_{-\infty}^{\infty} e^{-x^2} dx = \sqrt{\pi}$$
+                </p>
+
+                <div class="alert alert-light border mt-4 text-center rounded-3">
+                    <i class="bi bi-envelope-paper fs-3 d-block mb-2 text-secondary"></i>
+                    <span class="d-block mb-1">Связаться с нами:</span>
+                    <a href="mailto:example@email.com" class="text-decoration-none fw-bold">example@email.com</a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
