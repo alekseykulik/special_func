@@ -300,14 +300,6 @@ h1, h2, h3, h4, h5, h6 {
 /* =======================================
    СТИЛИ ДЛЯ ССЫЛОК В ПОДВАЛЕ
    ======================================= */
-.footer a {
-    transition: color 0.2s ease, transform 0.2s ease;
-    display: inline-block;
-}
-
-.footer a:hover {
-    color: #2563eb !important;
-    transform: translateY(-2px); 
 
 .footer {
     background: rgba(255, 255, 255, 0.85);
