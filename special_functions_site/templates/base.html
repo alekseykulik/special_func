@@ -65,14 +65,19 @@
 </main>
 
 <!-- Подвал -->
-<footer class="footer mt-auto py-4 border-top">
-    <div class="container text-center">
-        <div class="mb-2">
-            <a href="{{ url_for('about') }}" class="text-secondary text-decoration-none fw-medium">
+<footer class="footer mt-auto">
+    <div class="container d-flex flex-column flex-md-row justify-content-between align-items-center py-3">
+        
+        <small class="text-muted mb-2 mb-md-0">
+            © 2026 База знаний специальных функций. Все права защищены.
+        </small>
+        
+        <div class="d-flex align-items-center">
+            <a href="{{ url_for('about') }}" class="nav-link-custom">
                 <i class="bi bi-info-circle me-1"></i> О проекте
             </a>
         </div>
-        <small class="text-muted">© 2026 База знаний специальных функций. Все права защищены.</small>
+        
     </div>
 </footer>
 
