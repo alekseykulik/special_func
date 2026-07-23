@@ -235,3 +235,64 @@ h1, h2, h3, h4, h5, h6 {
 .footer small {
     color: #94a3b8;
 }
+
+/* =======================================
+   СТРАНИЦА "О ПРОЕКТЕ" (ИЗОЛИРОВАННЫЕ СТИЛИ)
+   ======================================= */
+
+.about-page .figure {
+    overflow: hidden;
+    border-radius: 12px;
+    display: inline-block;
+    width: 100%;
+}
+
+.about-page .figure-img {
+    transition: transform 0.5s ease;
+    will-change: transform;
+}
+
+.about-page .figure:hover .figure-img {
+    transform: scale(1.04);
+}
+
+.about-page .figure-caption {
+    font-size: 0.9rem;
+    color: #64748b !important;
+    font-style: italic;
+    padding-top: 12px;
+    margin-top: 12px;
+    position: relative;
+}
+
+.about-page .figure-caption::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 40px;
+    height: 2px;
+    background-color: rgba(37, 99, 235, 0.3);
+    border-radius: 2px;
+}
+
+
+.about-page hr.opacity-25 {
+    border: none;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, rgba(37, 99, 235, 0.2), transparent);
+    opacity: 1 !important; 
+}
+
+.about-page .h4 {
+    color: #0f172a;
+    position: relative;
+    padding-bottom: 8px;
+}
+
+.about-page p {
+    color: #475569;
+    line-height: 1.7;
+    font-size: 1.05rem;
+}
