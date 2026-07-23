@@ -347,6 +347,10 @@ def delete_material(material_id):
     db.session.commit()
     return redirect(url_for('admin'))
 
+@app.route('/about')
+def about():
+    return render_template('about.html')
+
 
 # =========================
 # ИНИЦИАЛИЗАЦИЯ БАЗЫ ДАННЫХ
