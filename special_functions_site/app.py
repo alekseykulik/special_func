@@ -1,8 +1,9 @@
 import os
-from flask import Flask, render_template, request, redirect, url_for
+from flask import Flask, render_template, request, redirect, url_for, abort
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager, UserMixin, login_user, logout_user, login_required, current_user
 from markupsafe import Markup
+from sqlalchemy import inspect, text
 import re
 from werkzeug.security import generate_password_hash, check_password_hash
 
@@ -41,6 +42,7 @@ class Section(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), unique=True, nullable=False)
     description = db.Column(db.Text, nullable=True)
+    position = db.Column(db.Integer, nullable=True)
 
 
 class Subsection(db.Model):
@@ -58,6 +60,68 @@ class Material(db.Model):
     wolfram_code = db.Column(db.Text, nullable=True)
     literature = db.Column(db.Text, nullable=True)
     subsection_id = db.Column(db.Integer, db.ForeignKey('subsection.id'), nullable=False)
+    # =========================
+# ПОРЯДОК РАЗДЕЛОВ
+# =========================
+
+def get_sections_in_order():
+    return Section.query.order_by(
+        Section.position.asc(),
+        Section.title.asc()
+    ).all()
+
+
+def normalize_section_positions():
+    sections = get_sections_in_order()
+
+    for position, section in enumerate(sections, start=1):
+        section.position = position
+
+    db.session.commit()
+
+
+def ensure_section_position_column():
+    """Добавляет поле position в существующую базу данных."""
+    column_names = {
+        column['name']
+        for column in inspect(db.engine).get_columns(Section.__tablename__)
+    }
+
+    if 'position' not in column_names:
+        table_name = db.engine.dialect.identifier_preparer.quote(
+            Section.__tablename__
+        )
+
+        if db.engine.dialect.name == 'postgresql':
+            query = (
+                f'ALTER TABLE {table_name} '
+                f'ADD COLUMN IF NOT EXISTS position INTEGER'
+            )
+        else:
+            query = (
+                f'ALTER TABLE {table_name} '
+                f'ADD COLUMN position INTEGER'
+            )
+
+        db.session.execute(text(query))
+        db.session.commit()
+
+    sections = Section.query.all()
+
+    if any(section.position is None for section in sections):
+        sections.sort(
+            key=lambda section: (
+                section.position is None,
+                section.position if section.position is not None else 0,
+                section.title.lower()
+            )
+        )
+
+        for position, section in enumerate(sections, start=1):
+            section.position = position
+
+        db.session.commit()
+    
 
 
 # =========================
@@ -117,7 +181,7 @@ def internal_links_filter(text):
 
 @app.route('/')
 def index():
-    sections = Section.query.order_by(Section.title.asc()).all()
+    sections = get_sections_in_order()
     return render_template('index.html', sections=sections)
 
 
@@ -189,7 +253,7 @@ def logout():
 @app.route('/admin')
 @login_required
 def admin():
-    sections = Section.query.order_by(Section.title.asc()).all()
+    sections = get_sections_in_order()
     subsections = Subsection.query.order_by(Subsection.title.asc()).all()
     materials = Material.query.order_by(Material.title.asc()).all()
 
@@ -209,13 +273,54 @@ def add_section():
     title = request.form['title']
     description = request.form['description']
 
-    new_section = Section(title=title, description=description)
+    last_position = db.session.query(
+        db.func.max(Section.position)
+    ).scalar() or 0
+
+    new_section = Section(
+        title=title,
+        description=description,
+        position=last_position + 1
+    )
     db.session.add(new_section)
     db.session.commit()
 
     return redirect(url_for('admin'))
 
+@app.route(
+    '/move_section/<int:section_id>/<string:direction>',
+    methods=['POST']
+)
+@login_required
+def move_section(section_id, direction):
+    if direction not in {'up', 'down'}:
+        abort(400)
 
+    section = Section.query.get_or_404(section_id)
+    sections = get_sections_in_order()
+
+    current_index = next(
+        index
+        for index, item in enumerate(sections)
+        if item.id == section.id
+    )
+
+    if direction == 'up':
+        target_index = current_index - 1
+    else:
+        target_index = current_index + 1
+
+    if 0 <= target_index < len(sections):
+        target_section = sections[target_index]
+
+        section.position, target_section.position = (
+            target_section.position,
+            section.position
+        )
+
+        db.session.commit()
+
+    return redirect(url_for('admin') + '#sections')
 @app.route('/edit_section/<int:section_id>', methods=['GET', 'POST'])
 @login_required
 def edit_section(section_id):
@@ -243,7 +348,9 @@ def delete_section(section_id):
     db.session.delete(section)
     db.session.commit()
 
-    return redirect(url_for('admin'))
+    normalize_section_positions()
+
+    return redirect(url_for('admin') + '#sections')
 
 
 # ---------- Подразделы ----------
@@ -358,6 +465,8 @@ def about():
 
 with app.app_context():
     db.create_all()
+    
+    ensure_section_position_column()
 
     admin_user = os.environ.get('ADMIN_USERNAME')
     admin_pass = os.environ.get('ADMIN_PASSWORD')
