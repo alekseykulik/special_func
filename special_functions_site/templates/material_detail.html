@@ -32,6 +32,7 @@
     </div>
 </div>
 
+{% if material.description %}
 <div class="card fancy-card mb-4">
     <div class="card-body">
         <h3>Описание</h3>
@@ -40,41 +41,41 @@
         </div>
     </div>
 </div>
+{% endif %}
 
+
+{% if material.formula %}
 <div class="card fancy-card mb-4">
     <div class="card-body">
         <h3>Формула</h3>
-        {% if material.formula %}
-            <div class="formula-box overflow-x-auto">
-                $$ {{ material.formula | safe }} $$
-            </div>
-        {% else %}
-            <p class="text-muted">Формула не добавлена.</p>
-        {% endif %}
+        <div class="formula-box overflow-x-auto">
+            $$ {{ material.formula | safe }} $$
+        </div>
     </div>
 </div>
+{% endif %}
 
+
+{% if material.wolfram_code %}
 <div class="card fancy-card mb-4">
     <div class="card-body">
         <h3>Wolfram-код</h3>
-        {% if material.wolfram_code %}
-            <div class="code-box overflow-x-auto">
-                <pre>{{ material.wolfram_code }}</pre>
-            </div>
-        {% else %}
-            <p class="text-muted">Wolfram-код не добавлен.</p>
-        {% endif %}
+        <div class="code-box overflow-x-auto">
+            <pre>{{ material.wolfram_code }}</pre>
+        </div>
     </div>
 </div>
+{% endif %}
 
-<div class="card fancy-card">
+
+{% if material.literature %}
+<div class="card fancy-card mb-4">
     <div class="card-body">
         <h3>Литература</h3>
-        {% if material.literature %}
-            <div>{{ material.literature | internal_links }}</div>
-        {% else %}
-            <p class="text-muted">Литература не добавлена.</p>
-        {% endif %}
+        <div>
+            {{ material.literature | internal_links }}
+        </div>
     </div>
 </div>
+{% endif %}
 {% endblock %}
