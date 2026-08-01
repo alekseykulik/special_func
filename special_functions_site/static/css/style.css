@@ -310,3 +310,41 @@ h1, h2, h3, h4, h5, h6 {
     z-index: 10;
     position: relative;
 }
+
+/* =======================================
+   КНИГИ (АНИМАЦИИ И ЭФФЕКТЫ)
+   ======================================= */
+
+/* Карточки книг в админке */
+#books .card {
+    background: white !important;
+    border: 1px solid rgba(226, 232, 240, 0.8) !important;
+    transition: transform 0.25s ease, box-shadow 0.25s ease;
+}
+
+#books .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04) !important;
+}
+
+#books .card .col-4 {
+    overflow: hidden;
+}
+
+#books .card img {
+    transition: transform 0.5s ease;
+    will-change: transform;
+}
+
+#books .card:hover img {
+    transform: scale(1.08);
+}
+
+#books .card .bi-book {
+    transition: color 0.3s ease, transform 0.3s ease;
+}
+
+#books .card:hover .bi-book {
+    color: #2563eb !important;
+    transform: scale(1.15) translateY(-2px);
+}
