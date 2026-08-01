@@ -6,6 +6,7 @@
 <div class="row g-4">
 
     <div class="col-lg-4">
+        
         <div class="card fancy-card mb-4">
             <div class="card-body">
                 <h3>Добавить раздел</h3>
@@ -23,7 +24,7 @@
                 <form method="post" action="{{ url_for('add_subsection') }}">
                     <input class="form-control mb-2" name="title" placeholder="Название подраздела" required>
                     <textarea class="form-control mb-2" name="description" rows="4" placeholder="Описание подраздела"></textarea>
-
+                    
                     <select class="form-control mb-2" name="section_id" required>
                         <option value="">Выбери раздел</option>
                         {% for section in sections %}
@@ -36,21 +37,16 @@
             </div>
         </div>
 
-        <div class="card fancy-card">
+        <div class="card fancy-card mb-4">
             <div class="card-body">
                 <h3>Добавить материал</h3>
                 <form method="post" action="{{ url_for('add_material') }}">
                     <input class="form-control mb-2" name="title" placeholder="Название материала" required>
-
-                    <textarea class="form-control mb-2" name="description" rows="5"
-                              placeholder="Описание. Внутренние ссылки: [[Название материала]]"></textarea>
-
+                    <textarea class="form-control mb-2" name="description" rows="5" placeholder="Описание. Внутренние ссылки: [[Название материала]]"></textarea>
                     <textarea class="form-control mb-2" name="formula" rows="3" placeholder="LaTeX формула"></textarea>
-
                     <textarea class="form-control mb-2" name="wolfram_code" rows="4" placeholder="Wolfram-код"></textarea>
-
                     <textarea class="form-control mb-2" name="literature" rows="4" placeholder="Литература"></textarea>
-
+                    
                     <select class="form-control mb-2" name="subsection_id" required>
                         <option value="">Выбери подраздел</option>
                         {% for subsection in subsections %}
@@ -62,69 +58,54 @@
                 </form>
             </div>
         </div>
+
+        <div class="card fancy-card mb-4">
+            <div class="card-body">
+                <h3>Добавить книгу</h3>
+                <form method="post" action="{{ url_for('add_book') }}">
+                    <input class="form-control mb-2" name="title" placeholder="Название книги" required>
+                    <input class="form-control mb-2" name="author" placeholder="Автор (Иванов И.И.)">
+                    <input type="number" class="form-control mb-2" name="publication_year" placeholder="Год (например: 2024)">
+                    <input type="url" class="form-control mb-2" name="cover_image" placeholder="URL обложки (картинка)">
+                    <input type="url" class="form-control mb-2" name="link" placeholder="Ссылка (скачать/купить)">
+                    <textarea class="form-control mb-2" name="description" rows="3" placeholder="Описание книги"></textarea>
+                    
+                    <button class="btn btn-main" type="submit">Добавить книгу</button>
+                </form>
+            </div>
+        </div>
+
     </div>
 
     <div class="col-lg-8">
+        
         <div class="card fancy-card mb-4">
             <div class="card-body">
                 <h3 id="sections">Разделы</h3>
                 <div class="list-group">
                     {% for section in sections %}
                     <div class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2">
-
-                        <a class="flex-grow-1"
-                            href="{{ url_for('section_detail', section_id=section.id) }}">
-                                {{ section.title }}
-                         </a>
-
-                         <div class="d-flex gap-2">
-
+                        <a class="flex-grow-1" href="{{ url_for('section_detail', section_id=section.id) }}">
+                            {{ section.title }}
+                        </a>
+                        <div class="d-flex gap-2">
                             <div class="d-flex gap-1">
-                                <form method="post"
-                                    action="{{ url_for('move_section', section_id=section.id, direction='up') }}">
-
-                                    <button class="btn btn-sm btn-outline-secondary"
-                                            type="submit"
-                                            title="Поднять раздел выше"
-                                            {% if loop.first %}disabled{% endif %}>
-                                         ↑
-                                    </button>
-                                 </form>
-
-                                <form method="post"
-                                    action="{{ url_for('move_section', section_id=section.id, direction='down') }}">
-
-                                    <button class="btn btn-sm btn-outline-secondary"
-                                            type="submit"
-                                            title="Опустить раздел ниже"
-                                            {% if loop.last %}disabled{% endif %}>
-                                     ↓
-                                    </button>
+                                <form method="post" action="{{ url_for('move_section', section_id=section.id, direction='up') }}">
+                                    <button class="btn btn-sm btn-outline-secondary" type="submit" title="Поднять раздел выше" {% if loop.first %}disabled{% endif %}>↑</button>
+                                </form>
+                                <form method="post" action="{{ url_for('move_section', section_id=section.id, direction='down') }}">
+                                    <button class="btn btn-sm btn-outline-secondary" type="submit" title="Опустить раздел ниже" {% if loop.last %}disabled{% endif %}>↓</button>
                                 </form>
                             </div>
-
-                    <a href="{{ url_for('edit_section', section_id=section.id) }}"
-                    class="btn btn-sm btn-outline-warning">
-                        Редактировать
-                        </a>
-
-                    <form method="post"
-                  action="{{ url_for('delete_section', section_id=section.id) }}"
-                  onsubmit="return confirm('Удалить раздел со всеми подразделами и материалами?');">
-
-                    <button class="btn btn-sm btn-outline-danger" type="submit">
-                    Удалить
-                    </button>
-                </form>
-
-        </div>
-    </div>
-
-    {% else %}
-    <div class="list-group-item text-muted">
-        Разделов пока нет.
-    </div>
-    {% endfor %}
+                            <a href="{{ url_for('edit_section', section_id=section.id) }}" class="btn btn-sm btn-outline-warning">Редактировать</a>
+                            <form method="post" action="{{ url_for('delete_section', section_id=section.id) }}" onsubmit="return confirm('Удалить раздел со всеми подразделами и материалами?');">
+                                <button class="btn btn-sm btn-outline-danger" type="submit">Удалить</button>
+                            </form>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="list-group-item text-muted">Разделов пока нет.</div>
+                    {% endfor %}
                 </div>
             </div>
         </div>
@@ -138,8 +119,7 @@
                         <a href="{{ url_for('subsection_detail', subsection_id=subsection.id) }}">{{ subsection.title }}</a>
                         <div class="d-flex gap-2">
                             <a href="{{ url_for('edit_subsection', subsection_id=subsection.id) }}" class="btn btn-sm btn-outline-warning">Редактировать</a>
-                            <form method="post" action="{{ url_for('delete_subsection', subsection_id=subsection.id) }}"
-                                  onsubmit="return confirm('Удалить подраздел со всеми материалами?');">
+                            <form method="post" action="{{ url_for('delete_subsection', subsection_id=subsection.id) }}" onsubmit="return confirm('Удалить подраздел со всеми материалами?');">
                                 <button class="btn btn-sm btn-outline-danger" type="submit">Удалить</button>
                             </form>
                         </div>
@@ -151,7 +131,7 @@
             </div>
         </div>
 
-        <div class="card fancy-card">
+        <div class="card fancy-card mb-4">
             <div class="card-body">
                 <h3>Материалы</h3>
                 <div class="list-group">
@@ -160,8 +140,7 @@
                         <a href="{{ url_for('material_detail', material_id=material.id) }}">{{ material.title }}</a>
                         <div class="d-flex gap-2">
                             <a href="{{ url_for('edit_material', material_id=material.id) }}" class="btn btn-sm btn-outline-warning">Редактировать</a>
-                            <form method="post" action="{{ url_for('delete_material', material_id=material.id) }}"
-                                  onsubmit="return confirm('Удалить материал?');">
+                            <form method="post" action="{{ url_for('delete_material', material_id=material.id) }}" onsubmit="return confirm('Удалить материал?');">
                                 <button class="btn btn-sm btn-outline-danger" type="submit">Удалить</button>
                             </form>
                         </div>
@@ -172,7 +151,62 @@
                 </div>
             </div>
         </div>
-    </div>
 
+        <div class="card fancy-card mb-4" id="books">
+            <div class="card-body">
+                <h3 class="d-flex align-items-center gap-2 mb-3">
+                    <i class="bi bi-journals text-primary"></i> Книги 
+                    <span class="badge bg-secondary rounded-pill fs-6">{{ books|length }}</span>
+                </h3>
+                
+                <div class="row row-cols-1 row-cols-md-2 g-3">
+                    {% for book in books %}
+                    <div class="col">
+                        <div class="card h-100 shadow-sm border-0 rounded-4 overflow-hidden" style="background-color: #f8f9fa;">
+                            <div class="row g-0 h-100">
+                                <div class="col-4 bg-light d-flex align-items-center justify-content-center border-end" style="min-height: 120px;">
+                                    {% if book.cover_image %}
+                                        <img src="{{ book.cover_image }}" class="img-fluid h-100 w-100" style="object-fit: cover;" alt="Обложка">
+                                    {% else %}
+                                        <i class="bi bi-book text-muted fs-1"></i>
+                                    {% endif %}
+                                </div>
+                                <div class="col-8">
+                                    <div class="card-body d-flex flex-column h-100 p-3">
+                                        <h6 class="card-title fw-bold mb-1 text-truncate" title="{{ book.title }}">{{ book.title }}</h6>
+                                        <p class="card-text text-muted small mb-2 text-truncate">
+                                            <i class="bi bi-person"></i> {{ book.author or 'Неизвестно' }}
+                                        </p>
+                                        
+                                        <div class="mt-auto d-flex gap-1 justify-content-end">
+                                            <a href="{{ url_for('book_detail', book_id=book.id) }}" class="btn btn-sm btn-outline-primary" title="Просмотр" target="_blank">
+                                                <i class="bi bi-eye"></i>
+                                            </a>
+                                            <a href="{{ url_for('edit_book', book_id=book.id) }}" class="btn btn-sm btn-outline-warning" title="Изменить">
+                                                <i class="bi bi-pencil"></i>
+                                            </a>
+                                            <form action="{{ url_for('delete_book', book_id=book.id) }}" method="POST" class="d-inline" onsubmit="return confirm('Удалить книгу «{{ book.title }}»?');">
+                                                <button type="submit" class="btn btn-sm btn-outline-danger" title="Удалить">
+                                                    <i class="bi bi-trash"></i>
+                                                </button>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    {% else %}
+                    <div class="col-12">
+                        <div class="alert alert-light border border-dashed text-center text-muted mb-0">
+                            Книг пока нет. Добавьте первую книгу через форму слева.
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+    </div>
 </div>
 {% endblock %}
