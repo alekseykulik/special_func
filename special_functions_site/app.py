@@ -6,7 +6,6 @@ from markupsafe import Markup
 from sqlalchemy import inspect, text
 import re
 from werkzeug.security import generate_password_hash, check_password_hash
-
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -37,20 +36,17 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(100), unique=True, nullable=False)
     password = db.Column(db.String(255), nullable=False)
 
-
 class Section(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), unique=True, nullable=False)
     description = db.Column(db.Text, nullable=True)
     position = db.Column(db.Integer, nullable=True)
 
-
 class Subsection(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     title = db.Column(db.String(200), nullable=False)
     description = db.Column(db.Text, nullable=True)
     section_id = db.Column(db.Integer, db.ForeignKey('section.id'), nullable=False)
-
 
 class Material(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -60,7 +56,18 @@ class Material(db.Model):
     wolfram_code = db.Column(db.Text, nullable=True)
     literature = db.Column(db.Text, nullable=True)
     subsection_id = db.Column(db.Integer, db.ForeignKey('subsection.id'), nullable=False)
-    # =========================
+
+class Book(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    title = db.Column(db.String(250), nullable=False)
+    author = db.Column(db.String(200), nullable=True)
+    description = db.Column(db.Text, nullable=True)
+    cover_image = db.Column(db.String(500), nullable=True)
+    publication_year = db.Column(db.Integer, nullable=True)
+    link = db.Column(db.String(500), nullable=True)
+
+
+# =========================
 # ПОРЯДОК РАЗДЕЛОВ
 # =========================
 
@@ -70,15 +77,11 @@ def get_sections_in_order():
         Section.title.asc()
     ).all()
 
-
 def normalize_section_positions():
     sections = get_sections_in_order()
-
     for position, section in enumerate(sections, start=1):
         section.position = position
-
     db.session.commit()
-
 
 def ensure_section_position_column():
     """Добавляет поле position в существующую базу данных."""
@@ -86,28 +89,19 @@ def ensure_section_position_column():
         column['name']
         for column in inspect(db.engine).get_columns(Section.__tablename__)
     }
-
     if 'position' not in column_names:
         table_name = db.engine.dialect.identifier_preparer.quote(
             Section.__tablename__
         )
-
         if db.engine.dialect.name == 'postgresql':
-            query = (
-                f'ALTER TABLE {table_name} '
-                f'ADD COLUMN IF NOT EXISTS position INTEGER'
-            )
+            query = f'ALTER TABLE {table_name} ADD COLUMN IF NOT EXISTS position INTEGER'
         else:
-            query = (
-                f'ALTER TABLE {table_name} '
-                f'ADD COLUMN position INTEGER'
-            )
-
+            query = f'ALTER TABLE {table_name} ADD COLUMN position INTEGER'
+        
         db.session.execute(text(query))
         db.session.commit()
 
     sections = Section.query.all()
-
     if any(section.position is None for section in sections):
         sections.sort(
             key=lambda section: (
@@ -116,12 +110,9 @@ def ensure_section_position_column():
                 section.title.lower()
             )
         )
-
         for position, section in enumerate(sections, start=1):
             section.position = position
-
         db.session.commit()
-    
 
 
 # =========================
@@ -135,15 +126,12 @@ def load_user(user_id):
 
 # =========================
 # ОБРАБОТКА ССЫЛОК И ТЕКСТА
-# Внутренние: [[Название материала]]
-# Внешние: [Текст ссылки](https://ссылка.ру)
 # =========================
 
 def process_text_links(text):
     if not text:
         return ""
 
-    # 1. Обрабатываем внутренние ссылки [[Название]]
     pattern_internal = r"\[\[(.*?)\]\]"
     def replace_internal(match):
         material_title = match.group(1).strip()
@@ -155,7 +143,6 @@ def process_text_links(text):
 
     text = re.sub(pattern_internal, replace_internal, text)
 
-    # 2. Обрабатываем внешние ссылки [Текст](URL)
     pattern_external = r"\[([^\]]+)\]\(([^)]+)\)"
     def replace_external(match):
         link_text = match.group(1).strip()
@@ -163,12 +150,8 @@ def process_text_links(text):
         return f'<a href="{url}" target="_blank" rel="noopener noreferrer">{link_text}</a>'
 
     text = re.sub(pattern_external, replace_external, text)
-
-    # 3. Сохраняем переносы строк
     text = text.replace('\n', '<br>')
-
     return Markup(text)
-
 
 @app.template_filter('internal_links')
 def internal_links_filter(text):
@@ -184,38 +167,34 @@ def index():
     sections = get_sections_in_order()
     return render_template('index.html', sections=sections)
 
-
 @app.route('/section/<int:section_id>')
 def section_detail(section_id):
     section = Section.query.get_or_404(section_id)
     subsections = Subsection.query.filter_by(section_id=section_id).order_by(Subsection.title.asc()).all()
     return render_template('section_detail.html', section=section, subsections=subsections)
 
-
 @app.route('/subsection/<int:subsection_id>')
 def subsection_detail(subsection_id):
     subsection = Subsection.query.get_or_404(subsection_id)
     materials = Material.query.filter_by(subsection_id=subsection_id).order_by(Material.title.asc()).all()
     section = Section.query.get(subsection.section_id)
-    return render_template(
-        'subsection_detail.html',
-        subsection=subsection,
-        section=section,
-        materials=materials
-    )
-
+    return render_template('subsection_detail.html', subsection=subsection, section=section, materials=materials)
 
 @app.route('/material/<int:material_id>')
 def material_detail(material_id):
     material = Material.query.get_or_404(material_id)
     subsection = Subsection.query.get(material.subsection_id)
     section = Section.query.get(subsection.section_id)
-    return render_template(
-        'material_detail.html',
-        material=material,
-        subsection=subsection,
-        section=section
-    )
+    return render_template('material_detail.html', material=material, subsection=subsection, section=section)
+
+@app.route('/book/<int:book_id>')
+def book_detail(book_id):
+    book = Book.query.get_or_404(book_id)
+    return render_template('book_detail.html', book=book)
+
+@app.route('/about')
+def about():
+    return render_template('about.html')
 
 
 # =========================
@@ -227,17 +206,12 @@ def login():
     if request.method == 'POST':
         username = request.form['username']
         password = request.form['password']
-
         user = User.query.filter_by(username=username).first()
-
         if user and check_password_hash(user.password, password):
             login_user(user)
             return redirect(url_for('admin'))
-
         return 'Неверный логин или пароль'
-
     return render_template('login.html')
-
 
 @app.route('/logout')
 @login_required
@@ -256,12 +230,14 @@ def admin():
     sections = get_sections_in_order()
     subsections = Subsection.query.order_by(Subsection.title.asc()).all()
     materials = Material.query.order_by(Material.title.asc()).all()
+    books = Book.query.order_by(Book.title.asc()).all()
 
     return render_template(
         'admin.html',
         sections=sections,
         subsections=subsections,
-        materials=materials
+        materials=materials,
+        books=books
     )
 
 
@@ -272,39 +248,21 @@ def admin():
 def add_section():
     title = request.form['title']
     description = request.form['description']
-
-    last_position = db.session.query(
-        db.func.max(Section.position)
-    ).scalar() or 0
-
-    new_section = Section(
-        title=title,
-        description=description,
-        position=last_position + 1
-    )
+    last_position = db.session.query(db.func.max(Section.position)).scalar() or 0
+    new_section = Section(title=title, description=description, position=last_position + 1)
     db.session.add(new_section)
     db.session.commit()
-
     return redirect(url_for('admin'))
 
-@app.route(
-    '/move_section/<int:section_id>/<string:direction>',
-    methods=['POST']
-)
+@app.route('/move_section/<int:section_id>/<string:direction>', methods=['POST'])
 @login_required
 def move_section(section_id, direction):
     if direction not in {'up', 'down'}:
         abort(400)
-
     section = Section.query.get_or_404(section_id)
     sections = get_sections_in_order()
-
-    current_index = next(
-        index
-        for index, item in enumerate(sections)
-        if item.id == section.id
-    )
-
+    current_index = next(index for index, item in enumerate(sections) if item.id == section.id)
+    
     if direction == 'up':
         target_index = current_index - 1
     else:
@@ -312,44 +270,33 @@ def move_section(section_id, direction):
 
     if 0 <= target_index < len(sections):
         target_section = sections[target_index]
-
-        section.position, target_section.position = (
-            target_section.position,
-            section.position
-        )
-
+        section.position, target_section.position = target_section.position, section.position
         db.session.commit()
 
     return redirect(url_for('admin') + '#sections')
+
 @app.route('/edit_section/<int:section_id>', methods=['GET', 'POST'])
 @login_required
 def edit_section(section_id):
     section = Section.query.get_or_404(section_id)
-
     if request.method == 'POST':
         section.title = request.form['title']
         section.description = request.form['description']
         db.session.commit()
         return redirect(url_for('admin'))
-
     return render_template('edit_section.html', section=section)
-
 
 @app.route('/delete_section/<int:section_id>', methods=['POST'])
 @login_required
 def delete_section(section_id):
     section = Section.query.get_or_404(section_id)
-
     subsections = Subsection.query.filter_by(section_id=section_id).all()
     for subsection in subsections:
         Material.query.filter_by(subsection_id=subsection.id).delete()
         db.session.delete(subsection)
-
     db.session.delete(section)
     db.session.commit()
-
     normalize_section_positions()
-
     return redirect(url_for('admin') + '#sections')
 
 
@@ -358,81 +305,59 @@ def delete_section(section_id):
 @app.route('/add_subsection', methods=['POST'])
 @login_required
 def add_subsection():
-    title = request.form['title']
-    description = request.form['description']
-    section_id = request.form['section_id']
-
     new_subsection = Subsection(
-        title=title,
-        description=description,
-        section_id=section_id
+        title=request.form['title'],
+        description=request.form['description'],
+        section_id=request.form['section_id']
     )
     db.session.add(new_subsection)
     db.session.commit()
-
     return redirect(url_for('admin'))
-
 
 @app.route('/edit_subsection/<int:subsection_id>', methods=['GET', 'POST'])
 @login_required
 def edit_subsection(subsection_id):
     subsection = Subsection.query.get_or_404(subsection_id)
     sections = Section.query.order_by(Section.title.asc()).all()
-
     if request.method == 'POST':
         subsection.title = request.form['title']
         subsection.description = request.form['description']
         subsection.section_id = request.form['section_id']
         db.session.commit()
         return redirect(url_for('admin'))
-
     return render_template('edit_subsection.html', subsection=subsection, sections=sections)
-
 
 @app.route('/delete_subsection/<int:subsection_id>', methods=['POST'])
 @login_required
 def delete_subsection(subsection_id):
     subsection = Subsection.query.get_or_404(subsection_id)
-
     Material.query.filter_by(subsection_id=subsection_id).delete()
     db.session.delete(subsection)
     db.session.commit()
-
     return redirect(url_for('admin'))
-
 
 # ---------- Материалы ----------
 
 @app.route('/add_material', methods=['POST'])
 @login_required
 def add_material():
-    title = request.form['title']
-    description = request.form['description']
-    formula = request.form['formula']
-    wolfram_code = request.form['wolfram_code']
-    literature = request.form['literature']
-    subsection_id = request.form['subsection_id']
-
     new_material = Material(
-        title=title,
-        description=description,
-        formula=formula,
-        wolfram_code=wolfram_code,
-        literature=literature,
-        subsection_id=subsection_id
+        title=request.form['title'],
+        description=request.form['description'],
+        formula=request.form['formula'],
+        wolfram_code=request.form['wolfram_code'],
+        literature=request.form['literature'],
+        subsection_id=request.form['subsection_id']
     )
     db.session.add(new_material)
     db.session.commit()
-
     return redirect(url_for('admin'))
-
 
 @app.route('/edit_material/<int:material_id>', methods=['GET', 'POST'])
 @login_required
 def edit_material(material_id):
     material = Material.query.get_or_404(material_id)
     subsections = Subsection.query.order_by(Subsection.title.asc()).all()
-
     if request.method == 'POST':
         material.title = request.form['title']
         material.description = request.form['description']
@@ -442,9 +367,7 @@ def edit_material(material_id):
         material.subsection_id = request.form['subsection_id']
         db.session.commit()
         return redirect(url_for('material_detail', material_id=material.id))
-
     return render_template('edit_material.html', material=material, subsections=subsections)
-
 
 @app.route('/delete_material/<int:material_id>', methods=['POST'])
 @login_required
@@ -454,9 +377,46 @@ def delete_material(material_id):
     db.session.commit()
     return redirect(url_for('admin'))
 
-@app.route('/about')
-def about():
-    return render_template('about.html')
+
+# ---------- Книги ----------
+
+@app.route('/add_book', methods=['POST'])
+@login_required
+def add_book():
+    new_book = Book(
+        title=request.form['title'],
+        author=request.form.get('author'),
+        description=request.form.get('description'),
+        cover_image=request.form.get('cover_image'),
+        publication_year=request.form.get('publication_year'),
+        link=request.form.get('link')
+    )
+    db.session.add(new_book)
+    db.session.commit()
+    return redirect(url_for('admin') + '#books')
+
+@app.route('/edit_book/<int:book_id>', methods=['GET', 'POST'])
+@login_required
+def edit_book(book_id):
+    book = Book.query.get_or_404(book_id)
+    if request.method == 'POST':
+        book.title = request.form['title']
+        book.author = request.form.get('author')
+        book.description = request.form.get('description')
+        book.cover_image = request.form.get('cover_image')
+        book.publication_year = request.form.get('publication_year')
+        book.link = request.form.get('link')
+        db.session.commit()
+        return redirect(url_for('admin') + '#books')
+    return render_template('edit_book.html', book=book)
+
+@app.route('/delete_book/<int:book_id>', methods=['POST'])
+@login_required
+def delete_book(book_id):
+    book = Book.query.get_or_404(book_id)
+    db.session.delete(book)
+    db.session.commit()
+    return redirect(url_for('admin') + '#books')
 
 
 # =========================
@@ -465,7 +425,6 @@ def about():
 
 with app.app_context():
     db.create_all()
-    
     ensure_section_position_column()
 
     admin_user = os.environ.get('ADMIN_USERNAME')
@@ -482,6 +441,5 @@ with app.app_context():
 # =========================
 # ЗАПУСК ЛОКАЛЬНОГО СЕРВЕРА
 # =========================
-
 if __name__ == '__main__':
     app.run(debug=True)
