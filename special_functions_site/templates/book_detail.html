@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ book.title }} - Спецфункции{% endblock %}
+
+{% block content %}
+<div class="mb-4">
+    <a href="javascript:history.back()" class="text-decoration-none text-muted">
+        <i class="bi bi-arrow-left"></i> Назад
+    </a>
+</div>
+
+<div class="row mb-5">
+    <div class="col-md-4 col-lg-3 mb-4 mb-md-0">
+        <div class="card shadow-sm border-0 rounded-4 overflow-hidden">
+            {% if book.cover_image %}
+                <img src="{{ book.cover_image }}" alt="Обложка {{ book.title }}" class="img-fluid w-100" style="object-fit: cover; aspect-ratio: 2/3;">
+            {% else %}
+                <div class="bg-light d-flex align-items-center justify-content-center w-100" style="aspect-ratio: 2/3;">
+                    <i class="bi bi-book text-secondary" style="font-size: 4rem;"></i>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="col-md-8 col-lg-9">
+        <h1 class="fw-bold mb-2">{{ book.title }}</h1>
+        
+        <h4 class="text-muted mb-4">
+            {% if book.author %}
+                <i class="bi bi-person-fill"></i> {{ book.author }}
+            {% else %}
+                Неизвестный автор
+            {% endif %}
+            
+            {% if book.publication_year %}
+                <span class="badge bg-secondary ms-2 fw-normal">{{ book.publication_year }}</span>
+            {% endif %}
+        </h4>
+
+        <div class="card border-0 bg-light rounded-4 mb-4">
+            <div class="card-body p-4">
+                <h5 class="card-title fw-bold mb-3">О книге</h5>
+                {% if book.description %}
+                    <div class="card-text lh-lg">
+                        {{ book.description | internal_links | safe }}
+                    </div>
+                {% else %}
+                    <p class="text-muted fst-italic">Описание отсутствует.</p>
+                {% endif %}
+            </div>
+        </div>
+
+        <div class="d-flex gap-3 flex-wrap">
+            {% if book.link %}
+                <a href="{{ book.link }}" target="_blank" rel="noopener noreferrer" class="btn btn-primary px-4 py-2 rounded-pill shadow-sm">
+                    <i class="bi bi-box-arrow-up-right me-2"></i> Читать / Скачать
+                </a>
+            {% endif %}
+            
+            {% if current_user.is_authenticated %}
+                <a href="{{ url_for('edit_book', book_id=book.id) }}" class="btn btn-outline-secondary px-4 py-2 rounded-pill">
+                    <i class="bi bi-pencil me-2"></i> Редактировать
+                </a>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
