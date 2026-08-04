@@ -56,7 +56,7 @@ class Material(db.Model):
     wolfram_code = db.Column(db.Text, nullable=True)
     literature = db.Column(db.Text, nullable=True)
     subsection_id = db.Column(db.Integer, db.ForeignKey('subsection.id'), nullable=False)
-     position = db.Column(db.Integer, nullable=True)
+    position = db.Column(db.Integer, nullable=True)
 
 class Book(db.Model):
     id = db.Column(db.Integer, primary_key=True)
