@@ -235,7 +235,7 @@ def section_detail(section_id):
 @app.route('/subsection/<int:subsection_id>')
 def subsection_detail(subsection_id):
     subsection = Subsection.query.get_or_404(subsection_id)
-    materials = Material.query.filter_by(subsection_id=subsection_id).order_by(Material.title.asc()).all()
+    materials = get_materials_in_order(subsection_id)
     section = Section.query.get(subsection.section_id)
     return render_template('subsection_detail.html', subsection=subsection, section=section, materials=materials)
 
@@ -288,7 +288,11 @@ def logout():
 def admin():
     sections = get_sections_in_order()
     subsections = Subsection.query.order_by(Subsection.title.asc()).all()
-    materials = Material.query.order_by(Material.title.asc()).all()
+    materials = Material.query.order_by(
+        Material.subsection_id.asc(),
+        Material.position.asc(),
+        Material.title.asc()
+    ).all()
     books = Book.query.order_by(Book.title.asc()).all()
 
     return render_template(
@@ -400,41 +404,126 @@ def delete_subsection(subsection_id):
 @app.route('/add_material', methods=['POST'])
 @login_required
 def add_material():
+    subsection_id = int(request.form['subsection_id'])
+
+    last_position = (
+        db.session.query(db.func.max(Material.position))
+        .filter(Material.subsection_id == subsection_id)
+        .scalar()
+        or 0
+    )
+
     new_material = Material(
         title=request.form['title'],
         description=request.form['description'],
         formula=request.form['formula'],
         wolfram_code=request.form['wolfram_code'],
         literature=request.form['literature'],
-        subsection_id=request.form['subsection_id']
+        subsection_id=subsection_id,
+        position=last_position + 1
     )
+
     db.session.add(new_material)
     db.session.commit()
-    return redirect(url_for('admin'))
+
+    return redirect(url_for('admin') + '#materials')
+
+
+@app.route(
+    '/move_material/<int:material_id>/<string:direction>',
+    methods=['POST']
+)
+@login_required
+def move_material(material_id, direction):
+    if direction not in {'up', 'down'}:
+        abort(400)
+
+    material = Material.query.get_or_404(material_id)
+    materials = get_materials_in_order(material.subsection_id)
+
+    current_index = next(
+        index
+        for index, item in enumerate(materials)
+        if item.id == material.id
+    )
+
+    if direction == 'up':
+        target_index = current_index - 1
+    else:
+        target_index = current_index + 1
+
+    if 0 <= target_index < len(materials):
+        target_material = materials[target_index]
+
+        material.position, target_material.position = (
+            target_material.position,
+            material.position
+        )
+
+        db.session.commit()
+
+    return redirect(url_for('admin') + '#materials')
+
 
 @app.route('/edit_material/<int:material_id>', methods=['GET', 'POST'])
 @login_required
 def edit_material(material_id):
     material = Material.query.get_or_404(material_id)
     subsections = Subsection.query.order_by(Subsection.title.asc()).all()
+
     if request.method == 'POST':
+        new_subsection_id = int(request.form['subsection_id'])
+
+        if new_subsection_id != material.subsection_id:
+            last_position = (
+                db.session.query(db.func.max(Material.position))
+                .filter(Material.subsection_id == new_subsection_id)
+                .scalar()
+                or 0
+            )
+            material.position = last_position + 1
+
         material.title = request.form['title']
         material.description = request.form['description']
         material.formula = request.form['formula']
         material.wolfram_code = request.form['wolfram_code']
         material.literature = request.form['literature']
-        material.subsection_id = request.form['subsection_id']
+        material.subsection_id = new_subsection_id
+
         db.session.commit()
-        return redirect(url_for('material_detail', material_id=material.id))
-    return render_template('edit_material.html', material=material, subsections=subsections)
+
+        return redirect(
+            url_for('material_detail', material_id=material.id)
+        )
+
+    return render_template(
+        'edit_material.html',
+        material=material,
+        subsections=subsections
+    )
+
 
 @app.route('/delete_material/<int:material_id>', methods=['POST'])
 @login_required
 def delete_material(material_id):
     material = Material.query.get_or_404(material_id)
+    subsection_id = material.subsection_id
+
     db.session.delete(material)
+    db.session.flush()
+
+    remaining_materials = get_materials_in_order(subsection_id)
+
+    for position, remaining_material in enumerate(
+        remaining_materials,
+        start=1
+    ):
+        remaining_material.position = position
+
     db.session.commit()
-    return redirect(url_for('admin'))
+
+    return redirect(url_for('admin') + '#materials')
+
 
 
 # ---------- Книги ----------
