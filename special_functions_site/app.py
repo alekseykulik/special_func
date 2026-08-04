@@ -56,6 +56,7 @@ class Material(db.Model):
     wolfram_code = db.Column(db.Text, nullable=True)
     literature = db.Column(db.Text, nullable=True)
     subsection_id = db.Column(db.Integer, db.ForeignKey('subsection.id'), nullable=False)
+     position = db.Column(db.Integer, nullable=True)
 
 class Book(db.Model):
     id = db.Column(db.Integer, primary_key=True)
@@ -114,7 +115,65 @@ def ensure_section_position_column():
             section.position = position
         db.session.commit()
 
+# =========================
+# ПОРЯДОК МАТЕРИАЛОВ
+# =========================
 
+def get_materials_in_order(subsection_id):
+    return Material.query.filter_by(
+        subsection_id=subsection_id
+    ).order_by(
+        Material.position.asc(),
+        Material.title.asc()
+    ).all()
+
+
+def ensure_material_position_column():
+    """Добавляет поле position материалам в существующей базе."""
+
+    column_names = {
+        column['name']
+        for column in inspect(db.engine).get_columns(Material.__tablename__)
+    }
+
+    if 'position' not in column_names:
+        table_name = db.engine.dialect.identifier_preparer.quote(
+            Material.__tablename__
+        )
+
+        if db.engine.dialect.name == 'postgresql':
+            query = (
+                f'ALTER TABLE {table_name} '
+                'ADD COLUMN IF NOT EXISTS position INTEGER'
+            )
+        else:
+            query = f'ALTER TABLE {table_name} ADD COLUMN position INTEGER'
+
+        db.session.execute(text(query))
+        db.session.commit()
+
+    subsection_ids = [
+        subsection_id
+        for (subsection_id,) in db.session.query(Subsection.id).all()
+    ]
+
+    for subsection_id in subsection_ids:
+        materials = Material.query.filter_by(
+            subsection_id=subsection_id
+        ).all()
+
+        materials.sort(
+            key=lambda material: (
+                material.position is None,
+                material.position if material.position is not None else 0,
+                material.title.lower()
+            )
+        )
+
+        for position, material in enumerate(materials, start=1):
+            material.position = position
+
+    db.session.commit()
 # =========================
 # LOGIN
 # =========================
@@ -426,6 +485,7 @@ def delete_book(book_id):
 with app.app_context():
     db.create_all()
     ensure_section_position_column()
+    ensure_material_position_column()
 
     admin_user = os.environ.get('ADMIN_USERNAME')
     admin_pass = os.environ.get('ADMIN_PASSWORD')
