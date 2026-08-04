@@ -133,21 +133,50 @@
 
         <div class="card fancy-card mb-4">
             <div class="card-body">
-                <h3>Материалы</h3>
-                <div class="list-group">
-                    {% for material in materials %}
-                    <div class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2">
-                        <a href="{{ url_for('material_detail', material_id=material.id) }}">{{ material.title }}</a>
-                        <div class="d-flex gap-2">
-                            <a href="{{ url_for('edit_material', material_id=material.id) }}" class="btn btn-sm btn-outline-warning">Редактировать</a>
-                            <form method="post" action="{{ url_for('delete_material', material_id=material.id) }}" onsubmit="return confirm('Удалить материал?');">
-                                <button class="btn btn-sm btn-outline-danger" type="submit">Удалить</button>
-                            </form>
-                        </div>
-                    </div>
-                    {% else %}
-                    <div class="list-group-item text-muted">Материалов пока нет.</div>
-                    {% endfor %}
+                <h3 id="materials">Материалы</h3>
+
+{% for material in materials %}
+<div class="list-group-item d-flex justify-content-between align-items-center flex-wrap gap-2">
+    <a href="{{ url_for('material_detail', material_id=material.id) }}">
+        {{ material.title }}
+    </a>
+
+    <div class="d-flex gap-2">
+        <form method="post"
+              action="{{ url_for('move_material', material_id=material.id, direction='up') }}">
+            <button class="btn btn-sm btn-outline-secondary"
+                    type="submit"
+                    title="Поднять материал">
+                ↑
+            </button>
+        </form>
+
+        <form method="post"
+              action="{{ url_for('move_material', material_id=material.id, direction='down') }}">
+            <button class="btn btn-sm btn-outline-secondary"
+                    type="submit"
+                    title="Опустить материал">
+                ↓
+            </button>
+        </form>
+
+        <a href="{{ url_for('edit_material', material_id=material.id) }}"
+           class="btn btn-sm btn-outline-warning">
+            Редактировать
+        </a>
+
+        <form method="post"
+              action="{{ url_for('delete_material', material_id=material.id) }}"
+              onsubmit="return confirm('Удалить материал?');">
+            <button class="btn btn-sm btn-outline-danger" type="submit">
+                Удалить
+            </button>
+        </form>
+    </div>
+</div>
+{% else %}
+<div class="list-group-item text-muted">Материалов пока нет.</div>
+{% endfor %}
                 </div>
             </div>
         </div>
