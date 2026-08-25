@@ -3,24 +3,34 @@
 {% block title %}{{ subsection.title }}{% endblock %}
 
 {% block content %}
+
 <div class="page-header-box mb-4">
     <div class="mb-2">
         <a href="/" class="text-decoration-none">Главная</a>
         /
-        <a href="{{ url_for('section_detail', section_id=section.id) }}" class="text-decoration-none">{{ section.title }}</a>
+        <a href="{{ url_for('section_detail', section_id=section.id) }}"
+           class="text-decoration-none">
+            {{ section.title }}
+        </a>
         /
         <span>{{ subsection.title }}</span>
     </div>
 
     <h1>{{ subsection.title }}</h1>
-    <p class="text-muted mb-0">{{ subsection.description | safe }}</p>
+
+    <p class="text-muted mb-0">
+        {{ subsection.description | safe }}
+    </p>
 </div>
+
 
 <div class="fancy-card">
     <h2 class="mb-4">Содержание</h2>
 
     <div class="list-group list-group-flush">
-    {% for material in materials %}
+
+        {% for material in materials %}
+
         <div class="list-group-item py-3 d-flex justify-content-between align-items-center gap-3">
 
             <a href="{{ url_for('material_detail', material_id=material.id) }}"
@@ -28,28 +38,51 @@
                 {{ material.title }}
             </a>
 
-            {% if current_user.is_authenticated %}
-               <div class="d-flex gap-2">
-        <a href="{{ url_for('edit_material', material_id=material.id) }}"
-           class="btn btn-sm btn-outline-warning">
-            Редактировать
-        </a>
 
-        <form method="post"
-              action="{{ url_for('delete_material', material_id=material.id) }}"
-              onsubmit="return confirm('Удалить материал?');">
-            <button class="btn btn-sm btn-outline-danger" type="submit">
-                Удалить
-            </button>
-        </form>
-    </div>
+            {% if current_user.is_authenticated %}
+
+            <div class="d-flex gap-1">
+
+                <form method="post"
+                      action="{{ url_for('move_material', material_id=material.id, direction='up') }}">
+                    <button
+                        type="submit"
+                        class="btn btn-sm btn-outline-secondary"
+                        title="Поднять выше"
+                        {% if loop.first %}disabled{% endif %}
+                    >
+                        ↑
+                    </button>
+                </form>
+
+
+                <form method="post"
+                      action="{{ url_for('move_material', material_id=material.id, direction='down') }}">
+                    <button
+                        type="submit"
+                        class="btn btn-sm btn-outline-secondary"
+                        title="Опустить ниже"
+                        {% if loop.last %}disabled{% endif %}
+                    >
+                        ↓
+                    </button>
+                </form>
+
+            </div>
+
+            {% endif %}
 
         </div>
-    {% else %}
+
+        {% else %}
+
         <div class="text-muted">
             В этом подразделе пока нет материалов.
         </div>
-    {% endfor %}
+
+        {% endfor %}
+
+    </div>
 </div>
-</div>
+
 {% endblock %}
