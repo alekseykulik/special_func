@@ -456,7 +456,7 @@ def add_material():
     new_material = Material(
         title=request.form['title'],
         description=request.form['description'],
-        formula=request.form['formula'],
+        formula=None,
         wolfram_code=request.form['wolfram_code'],
         literature=request.form['literature'],
         subsection_id=subsection_id,
@@ -530,7 +530,6 @@ def edit_material(material_id):
 
         material.title = request.form['title']
         material.description = request.form['description']
-        material.formula = request.form['formula']
         material.wolfram_code = request.form['wolfram_code']
         material.literature = request.form['literature']
         material.subsection_id = new_subsection_id
