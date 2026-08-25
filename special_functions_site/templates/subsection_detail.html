@@ -20,16 +20,46 @@
     <h2 class="mb-4">Содержание</h2>
 
     <div class="list-group list-group-flush">
-        {% for material in materials %}
+    {% for material in materials %}
+        <div class="list-group-item py-3 d-flex justify-content-between align-items-center gap-3">
+
             <a href="{{ url_for('material_detail', material_id=material.id) }}"
-               class="list-group-item list-group-item-action py-3">
+               class="text-decoration-none flex-grow-1">
                 {{ material.title }}
             </a>
-        {% else %}
-            <div class="text-muted">
-                В этом подразделе пока нет материалов.
+
+            {% if current_user.is_authenticated %}
+            <div class="d-flex gap-1">
+
+                <form method="post"
+                      action="{{ url_for('move_material', material_id=material.id, direction='up') }}">
+                    <button class="btn btn-sm btn-outline-secondary"
+                            type="submit"
+                            title="Поднять материал выше"
+                            {% if loop.first %}disabled{% endif %}>
+                        ↑
+                    </button>
+                </form>
+
+                <form method="post"
+                      action="{{ url_for('move_material', material_id=material.id, direction='down') }}">
+                    <button class="btn btn-sm btn-outline-secondary"
+                            type="submit"
+                            title="Опустить материал ниже"
+                            {% if loop.last %}disabled{% endif %}>
+                        ↓
+                    </button>
+                </form>
+
             </div>
-        {% endfor %}
-    </div>
+            {% endif %}
+
+        </div>
+    {% else %}
+        <div class="text-muted">
+            В этом подразделе пока нет материалов.
+        </div>
+    {% endfor %}
+</div>
 </div>
 {% endblock %}
