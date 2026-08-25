@@ -246,6 +246,26 @@ def index():
         sections=sections,
         home_subtitle=home_subtitle.value
     )
+
+
+@app.route('/edit_home_subtitle', methods=['POST'])
+@login_required
+def edit_home_subtitle():
+    home_subtitle = SiteSetting.query.filter_by(
+        key='home_subtitle'
+    ).first()
+
+    if not home_subtitle:
+        home_subtitle = SiteSetting(key='home_subtitle')
+        db.session.add(home_subtitle)
+
+    home_subtitle.value = request.form.get('home_subtitle', '').strip()
+
+    db.session.commit()
+
+    return redirect(url_for('index'))
+
+
 @app.route('/section/<int:section_id>')
 def section_detail(section_id):
     section = Section.query.get_or_404(section_id)
