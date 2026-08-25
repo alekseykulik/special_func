@@ -502,7 +502,12 @@ def move_material(material_id, direction):
 
         db.session.commit()
 
-    return redirect(url_for('admin') + '#materials')
+    return redirect(
+        url_for(
+            'subsection_detail',
+            subsection_id=material.subsection_id
+        )
+    )
 
 
 @app.route('/edit_material/<int:material_id>', methods=['GET', 'POST'])
