@@ -7,7 +7,38 @@
     <h1 class="mb-3">Цифровая библиотека по специальным функциям</h1>
     <p class="lead mb-0">
     {{ home_subtitle }}
-    </p>
+
+    {% if current_user.is_authenticated %}
+        <button
+            class="btn btn-sm btn-outline-secondary ms-2"
+            type="button"
+            data-bs-toggle="collapse"
+            data-bs-target="#editHomeSubtitle"
+        >
+            Редактировать
+        </button>
+    {% endif %}
+</p>
+
+{% if current_user.is_authenticated %}
+<div class="collapse mt-3" id="editHomeSubtitle">
+    <form method="POST" action="{{ url_for('edit_home_subtitle') }}">
+        <div class="input-group">
+            <input
+                type="text"
+                class="form-control"
+                name="home_subtitle"
+                value="{{ home_subtitle }}"
+                required
+            >
+
+            <button class="btn btn-primary" type="submit">
+                Сохранить
+            </button>
+        </div>
+    </form>
+</div>
+{% endif %}
 </div>
 
 <div class="row g-4">
