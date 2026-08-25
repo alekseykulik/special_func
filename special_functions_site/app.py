@@ -66,7 +66,11 @@ class Book(db.Model):
     cover_image = db.Column(db.String(500), nullable=True)
     publication_year = db.Column(db.Integer, nullable=True)
     link = db.Column(db.String(500), nullable=True)
-
+    
+class SiteSetting(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    key = db.Column(db.String(100), unique=True, nullable=False)
+    value = db.Column(db.Text, nullable=True)
 
 # =========================
 # ПОРЯДОК РАЗДЕЛОВ
@@ -224,8 +228,24 @@ def internal_links_filter(text):
 @app.route('/')
 def index():
     sections = get_sections_in_order()
-    return render_template('index.html', sections=sections)
 
+    home_subtitle = SiteSetting.query.filter_by(
+        key='home_subtitle'
+    ).first()
+
+    if not home_subtitle:
+        home_subtitle = SiteSetting(
+            key='home_subtitle',
+            value='Основные разделы, подразделы, формулы, литература и Wolfram-код.'
+        )
+        db.session.add(home_subtitle)
+        db.session.commit()
+
+    return render_template(
+        'index.html',
+        sections=sections,
+        home_subtitle=home_subtitle.value
+    )
 @app.route('/section/<int:section_id>')
 def section_detail(section_id):
     section = Section.query.get_or_404(section_id)
